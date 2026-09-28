@@ -1,0 +1,15 @@
+services:
+  traffic-ai-lab:
+    build: .
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - HF_HOME=/root/.cache/huggingface
+      - LAYA_MODEL=convaiinnovations/laya
+    volumes:
+      - traffic_ai_lab_hf_cache:/root/.cache/huggingface
+volumes:
+  traffic_ai_lab_hf_cache:
+    name: traffic_ai_lab_hf_cache

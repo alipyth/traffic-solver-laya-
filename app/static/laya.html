@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1114">
+<title>Laya — آزمایشگاه و آموزش</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/laya.css">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="#top"><span class="logo">L</span><b>Laya</b><small>آزمایشگاه و آموزش</small></a>
+  <nav>
+    <a href="#what">Laya چیست؟</a>
+    <a href="#play">آزمایشگاه</a>
+    <a href="#install">نصب</a>
+    <a href="#use">استفاده</a>
+    <a href="#tips">نکات</a>
+  </nav>
+  <span id="pill" class="pill wait"><i></i><span>در حال اتصال…</span></span>
+</header>
+
+<main id="top">
+<!-- ============================================================ HERO -->
+<section class="hero">
+  <div>
+    <h1>تصمیم‌گیری روی متن، <em>در میلی‌ثانیه</em></h1>
+    <p class="lead">Laya یک «موتور تصمیم» است: یک متن یا JSON را می‌خواند و به چند سؤال مشخص جواب می‌دهد (کدام گزینه؟ چقدر؟ بله یا نه؟). همه‌ی جواب‌ها را در <b>یک بار خواندن</b> می‌دهد، همراه با احتمال هر گزینه. متن تولید نمی‌کند، پس نه خروجی نامعتبر می‌دهد و نه چیزی از خودش می‌سازد.</p>
+    <div class="cta"><a class="btn primary" href="#play">همین حالا امتحان کن ↓</a><a class="btn" href="#install">نصب روی سیستم خودت</a></div>
+  </div>
+  <div class="hero-card" dir="ltr">
+<pre><code><span class="k">import</span> laya
+agent = laya.load(<span class="s">"convaiinnovations/laya"</span>)
+
+r = agent.predict(
+  <span class="s">"We were billed twice. Refund today or we cancel."</span>,
+  {<span class="s">"refund"</span>: {<span class="s">"type"</span>: <span class="s">"noul"</span>,
+    <span class="s">"instructions"</span>: <span class="s">"Does the customer ask for money back?"</span>}})
+
+r[<span class="s">"answers"</span>][<span class="s">"refund"</span>][<span class="s">"noul"</span>]   <span class="c"># → 0.79 = P(yes)</span></code></pre>
+  </div>
+</section>
+
+<!-- ============================================================ WHAT -->
+<section id="what" class="block">
+  <h2>Laya چیست و کی به کارش ببریم؟</h2>
+  <div class="grid3">
+    <div class="card"><span class="ico">⚡</span><b>سریع</b><p>یک forward pass برای همه‌ی سؤال‌ها؛ حدود ۳۳ میلی‌ثانیه روی GPU (طبق سازنده). روی CPU معمولی چند صد میلی‌ثانیه.</p></div>
+    <div class="card"><span class="ico">🎯</span><b>خروجی تایپ‌شده</b><p>جواب همیشه یکی از گزینه‌هایی است که خودت تعریف کرده‌ای. JSON خراب، متن اضافه و parse کردن ندارد.</p></div>
+    <div class="card"><span class="ico">📊</span><b>احتمال کالیبره‌شده</b><p>برای هر گزینه یک احتمال می‌دهد. می‌توانی بگویی «اگر مطمئن نبود، به انسان بسپار».</p></div>
+  </div>
+  <div class="table-wrap">
+    <table class="cmp">
+      <tr><th></th><th>Laya</th><th>LLM (مثل GPT یا Llama)</th></tr>
+      <tr><td>خروجی</td><td>انتخاب از گزینه‌های مشخص + احتمال</td><td>متن آزاد</td></tr>
+      <tr><td>سرعت</td><td>یک بار خواندن، میلی‌ثانیه</td><td>تولید کلمه‌به‌کلمه، معمولاً ثانیه</td></tr>
+      <tr><td>مناسب برای</td><td>دسته‌بندی، مسیریابی، فیلتر، امتیازدهی، تصمیم بله/خیر</td><td>نوشتن، خلاصه، گفتگو، استدلال چندمرحله‌ای</td></tr>
+      <tr><td>محدودیت</td><td>متن کوتاه (۵۱۲ توکن در مدل انگلیسی)؛ حساب و مقایسه‌ی عدد را خوب انجام نمی‌دهد</td><td>کند و پرهزینه؛ ممکن است خروجی نامعتبر بدهد</td></tr>
+    </table>
+  </div>
+  <div class="types">
+    <div class="type"><code>choice</code><b>کدام گزینه؟</b><p>از بین چند برچسب یکی را انتخاب می‌کند. مثال: بخش مسئول تیکت (مالی / فنی / سایر).</p></div>
+    <div class="type"><code>score</code><b>چقدر؟</b><p>روی یک مقیاس مرتب امتیاز می‌دهد. مثال: فوریت از ۰ (عادی) تا ۲ (بحرانی).</p></div>
+    <div class="type"><code>noul</code><b>بله یا نه؟</b><p>احتمال «بله» را برمی‌گرداند. مثال: آیا مشتری تهدید به لغو کرده؟</p></div>
+  </div>
+</section>
+
+<!-- ============================================================ PLAYGROUND -->
+<section id="play" class="block">
+  <h2>آزمایشگاه</h2>
+  <p class="muted">یک نمونه انتخاب کن یا خودت متن و سؤال بنویس. درخواست مستقیم به مدل واقعی Laya روی همین سرور فرستاده می‌شود.</p>
+  <div class="presets" id="presets"></div>
+
+  <div class="play">
+    <div class="pane">
+      <div class="pane-h"><span class="n">1</span>متن ورودی (state)<small>متن ساده یا JSON</small></div>
+      <textarea id="state" dir="ltr" rows="6" spellcheck="false"></textarea>
+      <div id="langWarn" class="warn" hidden>این مدل انگلیسی است. برای متن فارسی از <code>laya-multilingual</code> استفاده کن (بخش «استفاده» را ببین). نتیجه‌ی فارسی روی این مدل قابل اعتماد نیست.</div>
+
+      <div class="pane-h"><span class="n">2</span>سؤال‌ها<button id="addQ" class="mini">+ سؤال</button></div>
+      <div id="questions"></div>
+      <button id="run" class="btn primary wide">⚡ بپرس از Laya</button>
+    </div>
+
+    <div class="pane">
+      <div class="pane-h"><span class="n">3</span>پاسخ Laya<small id="meta"></small></div>
+      <div id="results" class="results"><p class="muted">نتیجه اینجا نمایش داده می‌شود.</p></div>
+      <div class="pane-h code-h"><span class="n">4</span>همین درخواست در کد
+        <span class="seg"><button class="seg-b active" data-code="py">Python</button><button class="seg-b" data-code="curl">HTTP</button><button class="seg-b" data-code="json">JSON</button></span>
+        <button id="copyCode" class="mini">کپی</button></div>
+      <pre class="code" dir="ltr"><code id="code"></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ INSTALL -->
+<section id="install" class="block">
+  <h2>نصب</h2>
+  <ol class="steps">
+    <li><b>پایتون ۳٫۱۰ یا جدیدتر</b> لازم است. نسخه را چک کن:
+      <pre class="code" dir="ltr"><code>python --version</code></pre></li>
+    <li><b>یک محیط مجازی بساز</b> تا کتابخانه‌ها با بقیه‌ی پروژه‌ها قاطی نشوند.
+      <div class="tabs" data-tabs>
+        <button class="t active" data-os="win">Windows</button><button class="t" data-os="nix">macOS / Linux</button>
+      </div>
+      <pre class="code os win" dir="ltr"><code>py -3.11 -m venv .venv
+.\.venv\Scripts\activate</code></pre>
+      <pre class="code os nix" dir="ltr" hidden><code>python3 -m venv .venv
+source .venv/bin/activate</code></pre></li>
+    <li><b>(اختیاری) PyTorch مخصوص CPU</b>: اگر کارت گرافیک NVIDIA نداری، نسخه‌ی CPU خیلی کم‌حجم‌تر است. قبل از Laya نصبش کن:
+      <pre class="code" dir="ltr"><code>pip install torch --index-url https://download.pytorch.org/whl/cpu</code></pre></li>
+    <li><b>خود Laya را نصب کن:</b>
+      <pre class="code" dir="ltr"><code>pip install laya</code></pre>
+      <p class="muted">افزونه‌های اختیاری: <code>laya[serve]</code> برای سرور HTTP، <code>laya[onnx]</code> برای ONNX Runtime، <code>laya[langchain]</code> برای LangChain/LangGraph، <code>laya[mcp]</code> برای MCP.</p></li>
+    <li><b>بررسی نصب</b> (مدلی دانلود نمی‌شود):
+      <pre class="code" dir="ltr"><code>python -c "import laya; print(laya.__version__)"</code></pre></li>
+    <li><b>اولین اجرا مدل را دانلود می‌کند</b> (مدل انگلیسی حدود ۴۲۱ میلیون پارامتر) و در کش Hugging Face (<code>~/.cache/huggingface</code>) نگه می‌دارد. دفعه‌های بعد اینترنت لازم نیست.</li>
+  </ol>
+</section>
+
+<!-- ============================================================ USE -->
+<section id="use" class="block">
+  <h2>استفاده</h2>
+
+  <h3>۱. بارگذاری و اولین پیش‌بینی</h3>
+  <p>مدل را <b>یک بار</b> بارگذاری کن (چند ثانیه) و بعد هر چقدر خواستی بپرس:</p>
+<pre class="code" dir="ltr"><code>import laya
+
+agent = laya.load("convaiinnovations/laya")          # English checkpoint
+
+state = "Hi, we were billed twice for March. Please refund the duplicate today or we will cancel our plan."
+questions = {
+    "department": {"type": "choice", "instructions": "Which department should handle this?",
+                   "criteria": {"billing": "invoices, payments, refunds",
+                                "technical": "bugs, outages, system errors",
+                                "other": "everything else"}},
+    "urgency":    {"type": "score", "instructions": "How urgent is this?",
+                   "criteria": ["not urgent", "soon", "blocking"]},
+    "churn_risk": {"type": "noul", "instructions": "Does the user threaten to cancel or leave?"},
+}
+
+result = agent.predict(state, questions)
+answers = result["answers"]
+print(answers["department"]["choice"])        # "billing"   (probability 0.99)
+print(answers["department"]["probabilities"]) # probability of every label
+print(answers["urgency"]["score"])            # 1.77 -> between "soon" (1) and "blocking" (2)
+print(answers["churn_risk"]["noul"])          # 0.88 -> probability of "yes"</code></pre>
+
+  <h3>۲. شکل سؤال‌ها و جواب‌ها</h3>
+  <div class="table-wrap">
+  <table class="ref">
+    <tr><th>نوع</th><th>criteria</th><th>فیلدهای جواب</th></tr>
+    <tr><td><code>choice</code></td><td dir="ltr"><code>{"label": "description", ...}</code> یا <code>["a", "b"]</code></td><td><code>choice</code> برچسب برنده، <code>probabilities</code> احتمال هر برچسب</td></tr>
+    <tr><td><code>score</code></td><td>فهرست سطح‌ها، از پایین به بالا: <code dir="ltr">["low", "mid", "high"]</code></td><td><code>score</code> امتیاز مورد انتظار (عدد اعشاری)، <code>probabilities</code> برای هر سطح (<code>"0"</code>، <code>"1"</code>، …)</td></tr>
+    <tr><td><code>noul</code></td><td>اختیاری: <code dir="ltr">{"true": "...", "false": "..."}</code></td><td><code>noul</code> احتمال «بله» (۰ تا ۱)</td></tr>
+  </table>
+  </div>
+  <p class="muted">هر جواب <code>answer_confidence</code> هم دارد: اطمینان کالیبره‌شده که برای همه‌ی نوع‌ها قابل مقایسه است. با آن می‌توانی آستانه بگذاری، مثلاً اگر زیر ۰٫۶ بود به انسان بسپاری.</p>
+
+  <h3>۳. فارسی و زبان‌های دیگر: Router</h3>
+  <p>مدل پیش‌فرض انگلیسی است. <code>Router</code> زبان متن را تشخیص می‌دهد و متن غیرانگلیسی (از جمله فارسی) را به <code>laya-multilingual</code> (بیش از ۱۰۰ زبان) می‌فرستد:</p>
+<pre class="code" dir="ltr"><code>from laya import Router
+
+router = Router()                      # downloads a checkpoint on first use
+r = router.predict("دو بار از حسابم پول کم شده، لطفاً برگردانید.", questions)
+print(r["routing"]["model"])           # "multilingual"
+print(r["answers"]["department"]["choice"])
+
+# force a checkpoint, and read long documents (multilingual reads up to 8192 tokens)
+r = router.predict(long_text, questions, model="multilingual", max_len=8192)</code></pre>
+
+  <h3>۴. تعداد زیاد: batch</h3>
+  <p>اگر یک سؤال را روی تعداد زیادی متن می‌پرسی، با هم بفرست تا در یک بار اجرای مدل پردازش شوند (روی GPU چند برابر سریع‌تر است):</p>
+<pre class="code" dir="ltr"><code>results = agent.predict_batch(["ticket one ...", "ticket two ...", "ticket three ..."], questions,
+                              batch_size=32)
+for r in results:
+    print(r["answers"]["department"]["choice"])</code></pre>
+
+  <h3>۵. از روی schema (Pydantic)</h3>
+<pre class="code" dir="ltr"><code>from typing import Literal
+from pydantic import BaseModel
+import laya
+
+class Ticket(BaseModel):
+    department: Literal["billing", "support", "sales"]
+    urgency: Literal[0, 1, 2]
+    needs_human: bool
+
+values = laya.decide(agent, state, schema=Ticket)   # {"department": "billing", "urgency": 2, "needs_human": True}</code></pre>
+
+  <h3>۶. از خط فرمان</h3>
+<pre class="code" dir="ltr"><code>laya "My payment failed twice" --preset triage
+laya "My payment failed twice" --preset triage --json</code></pre>
+  <p class="muted">سؤال‌های آماده (preset): <code>triage</code> (پشتیبانی مشتری)، <code>email</code>، <code>guard</code> (محافظ ورودی LLM)، <code>moderation</code> (ایمنی محتوا)، <code>router</code> (انتخاب مدل). در پایتون هم هستند: <code>laya.triage_questions()</code> و بقیه.</p>
+
+  <h3>۷. به‌عنوان سرویس HTTP</h3>
+<pre class="code" dir="ltr"><code>pip install "laya[serve]"
+LAYA_PORT=8000 LAYA_API_KEY=secret laya-serve
+
+curl -X POST http://localhost:8000/v1/systemone \
+  -H "Authorization: Bearer secret" -H "Content-Type: application/json" \
+  -d '{"state": "We were billed twice.", "questions": {"refund": {"type": "noul", "instructions": "Does the customer ask for money back?"}}}'</code></pre>
+  <p class="muted">متغیرهای مهم: <code>LAYA_DEVICE</code> (مثلاً <code>cpu</code> یا <code>cuda</code>)، <code>LAYA_MODELS</code> (کدام مدل‌ها از اول بارگذاری شوند)، <code>LAYA_THREADS</code> (تعداد thread روی CPU؛ بیشتر از تعداد هسته‌ی فیزیکی نگذار). بررسی سلامت: <code>GET /health</code>.</p>
+</section>
+
+<!-- ============================================================ TIPS -->
+<section id="tips" class="block">
+  <h2>نکات عملی</h2>
+  <p class="muted">این نکته‌ها را موقع ساختن کنترل چراغ راهنمایی با Laya روی مدل واقعی اندازه گرفتیم.</p>
+  <div class="grid2">
+    <div class="card tip"><b>متن را کوتاه و متمرکز نگه دار</b><p>مدل انگلیسی فقط ۵۱۲ توکن را می‌خواند و بقیه بریده می‌شود. وقتی وضعیت ۹ چهارراه را در یک JSON بزرگ دادیم، برای همه‌شان یک جواب غلط یکسان داد. با یک متن کوتاه برای هر مورد درست شد.</p></div>
+    <div class="card tip"><b>عدد را به کلمه تبدیل کن</b><p>Laya ماشین‌حساب نیست. با «۱۴ ماشین در برابر ۱۱» دقتش حدود ۵۰ تا ۷۵ درصد بود. با «heavy در برابر light» بهتر شد، و وقتی مقایسه را صریح گفتیم («More cars are waiting on the north-south road») روی همه‌ی ۷۵ حالت آزمایش‌شده درست جواب داد.</p></div>
+    <div class="card tip"><b>قانون را در instructions بنویس</b><p>مثلاً «an ambulance always gets green first». Laya در همه‌ی ۲۵ حالتی که آمبولانس در خیابان خلوت‌تر بود، به آن سبز داد، حتی برخلاف جمله‌ی «صف طرف دیگر بیشتر است».</p></div>
+    <div class="card tip"><b>پاسخ‌ها را کش کن</b><p>برای یک متن و سؤال یکسان، جواب همیشه یکسان است. اگر تعداد حالت‌های ممکن محدود است، یک بار بپرس و نگه دار؛ ما این‌طور زمان تصمیم را از چند صد میلی‌ثانیه به چند میلی‌ثانیه رساندیم.</p></div>
+    <div class="card tip"><b>گزینه‌ها را توصیف کن</b><p>در <code>choice</code> به جای برچسب خالی، برای هر گزینه یک توضیح کوتاه بنویس (<code>"billing": "invoices, payments, refunds"</code>). مدل توضیح را می‌خواند، نه فقط اسم را.</p></div>
+    <div class="card tip"><b>برای دقت بیشتر fine-tune کن</b><p>طبق سازنده، روی بنچمارک «تصمیم‌های تایپ‌شده» مدل پایه ۰٫۳۶۲ دقت داشت و نسخه‌ی fine-tune شده ۰٫۷۶۶. یک notebook آماده برای Kaggle (دو GPU رایگان T4) در مخزن پروژه هست.</p></div>
+  </div>
+  <div class="links">
+    <a href="https://pypi.org/project/laya/" target="_blank" rel="noopener">PyPI</a>
+    <a href="https://huggingface.co/convaiinnovations/laya" target="_blank" rel="noopener">مدل در Hugging Face</a>
+    <a href="https://nandhakishorm.github.io/laya/" target="_blank" rel="noopener">مستندات رسمی</a>
+    <a href="https://huggingface.co/spaces/convaiinnovations/laya-demo" target="_blank" rel="noopener">دموی رسمی</a>
+  </div>
+</section>
+</main>
+<footer>Laya ساخته‌ی Convai Innovations است (مجوز Apache-2.0). این صفحه یک راهنمای مستقل است.</footer>
+<script src="/static/laya.js"></script>
+</body>
+</html>
